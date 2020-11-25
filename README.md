@@ -46,16 +46,33 @@ askFile(FileType.IMAGES){resultData->
 
 ```
 askCamera(authority = "your_file_provider_authority_here"){resultData->
-                //okResult here
-            }.onCancel {resultData->
-                //ask it again
-                //resultData.askAgain()
-            }.onPermissionDenied {resultData->
-                if(resultData.hasDenied())
-                    resultData.askAgainPermission()
+    //okResult here
+}.onCancel {resultData->
+   //ask it again
+  //resultData.askAgain()
+}.onPermissionDenied {resultData->
+  if(resultData.hasDenied())
+    resultData.askAgainPermission()
+  if(resultData.hasForeverDenied())
+    resultData.goToSettings()
+}
 
-                if(resultData.hasForeverDenied())
-                    resultData.goToSettings()
-            }
+```
+
+# Ask For Contact
+
+```
+askContact {resultData->
+  //okResult here
+}.onCancel {resultData->
+  //ask it again
+  resultData.askAgain()
+}.onPermissionDenied {resultData->
+   if(resultData.hasDenied())
+      resultData.askAgainPermission()
+
+   if(resultData.hasForeverDenied())
+     resultData.goToSettings()
+}
 
 ```
