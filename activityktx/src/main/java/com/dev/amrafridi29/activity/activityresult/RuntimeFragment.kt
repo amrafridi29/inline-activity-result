@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import com.dev.amrafridi29.activity.activityresult.callbacks.OnCancelCallback
 import com.dev.amrafridi29.activity.activityresult.callbacks.OnPermissionDeniedCallback
 import com.dev.amrafridi29.activity.activityresult.callbacks.OnResultCallback
+import com.dev.amrafridi29.activity.activityresult.callbacks.OnResultResponseCallback
 import com.dev.amrafridi29.activity.activityresult.model.IntentType
 import com.dev.amrafridi29.activity.activityresult.model.PermissionStatus
 import com.dev.amrafridi29.activity.activityresult.model.ResultData
@@ -23,6 +24,7 @@ class RuntimeFragment {
     private var activityReference: Reference<Activity>
     private var intentType : IntentType?= null
 
+    private val resultResponseCallbacks = mutableListOf<OnResultResponseCallback>()
     private val cancelCallbacks = mutableListOf<OnCancelCallback>()
     private val resultCallbacks = mutableListOf<OnResultCallback>()
     private val permissionDeniedCallbacks = mutableListOf<OnPermissionDeniedCallback>()
@@ -43,34 +45,46 @@ class RuntimeFragment {
     }
 
     private val listener =object : ResultFragment.RuntimeFragmentListener {
-        override fun onResult(resultCode: Int, intent: Intent?) {
-            resultCallbacks.forEach { c->
-                c.onResult(ResultData(resultCode, intent, this@RuntimeFragment, null))
-            }
-        }
-
-        override fun onCancel(resultCode: Int, intent: Intent?) {
-            cancelCallbacks.forEach { c->
-                c.onCancel(ResultData(resultCode, intent, this@RuntimeFragment, null))
-            }
-        }
-
-        override fun onPermissionDenied(
+        override fun onResponse(
             resultCode: Int,
             intent: Intent?,
-            permissionResult: PermissionResult
+            permissionResult: PermissionResult?
         ) {
-            permissionDeniedCallbacks.forEach { c->
-                c.onPermissionDenied(
-                    ResultData(
-                        resultCode,
-                        intent,
-                        this@RuntimeFragment,
-                        permissionResult
+            if(resultCode==Activity.RESULT_OK && permissionResult==null){
+                resultCallbacks.forEach { c->
+                    c.onResult(ResultData(resultCode, intent, this@RuntimeFragment, null))
+                }
+            }
+
+            if(resultCode==Activity.RESULT_CANCELED && permissionResult==null){
+                cancelCallbacks.forEach { c->
+                    c.onCancel(ResultData(resultCode, intent, this@RuntimeFragment, null))
+                }
+            }
+
+            if(permissionResult!=null){
+                permissionDeniedCallbacks.forEach { c->
+                    c.onPermissionDenied(
+                        ResultData(
+                            resultCode,
+                            intent,
+                            this@RuntimeFragment,
+                            permissionResult
+                        )
                     )
-                )
+                }
+            }
+
+            resultResponseCallbacks.forEach { c ->
+                c.onResultResponse(ResultData(
+                    resultCode,
+                    intent,
+                    this@RuntimeFragment,
+                    permissionResult
+                ))
             }
         }
+
     }
 
 
@@ -80,6 +94,11 @@ class RuntimeFragment {
         if(activity!=null)
             this.activityReference = WeakReference(activity)
         else this.activityReference= WeakReference(null)
+    }
+
+    fun onResponse(callback: OnResultResponseCallback):RuntimeFragment{
+        resultResponseCallbacks.add(callback)
+        return this
     }
 
     fun onCancel(callback: OnCancelCallback) : RuntimeFragment {

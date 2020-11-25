@@ -1,13 +1,24 @@
 package com.dev.amrafridi29.activityresultexample
 
+import android.Manifest
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import com.dev.amrafridi29.activity.askAccessUsageSettingsPermission
+import com.dev.amrafridi29.activity.*
+import com.dev.amrafridi29.activity.activityresult.model.FileType
+import com.dev.amrafridi29.activity.exception.PermissionException
+import com.dev.amrafridi29.activity.exception.RuntimeFragmentException
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,13 +28,61 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            askAccessUsageSettingsPermission {
-                Log.e("TAG", "OnResult: $it" )
-                Toast.makeText(this, "Enabled", Toast.LENGTH_SHORT).show()
-            }.onCancel {
-                Log.e("TAG", "OnCancel: $it" )
-                Toast.makeText(this, "Cancel", Toast.LENGTH_SHORT).show()
+            GlobalScope.launch(Dispatchers.Main, CoroutineStart.DEFAULT){
+                try{
+                    val result = askFile(FileType.IMAGES)
+                    img.setImageURI(result.intent?.data)
+                }catch (e : RuntimeFragmentException){
+                    if(e.isCanceled()){
+                        AlertDialog.Builder(this@MainActivity)
+                            .setMessage("No file selected")
+                            .setTitle("File")
+                            .setNegativeButton("Cancel"){d, _ -> d.dismiss()}
+                            .setPositiveButton("Ask Again"){d, _ -> d.dismiss()
+                                e.askAgain()
+                            }.show()
+                    }
+
+                    if(e.hasDenied())
+                        Toast.makeText(this@MainActivity, "Denied", Toast.LENGTH_SHORT).show()
+
+                    if(e.hasForeverDenied()){
+                        e.goToSettings()
+                    }
+                }
             }
+//            GlobalScope.launch(Dispatchers.Main, CoroutineStart.DEFAULT){
+//                try{
+//                    val result = askPermission(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_CONTACTS)
+//                    Toast.makeText(this@MainActivity, "Granted", Toast.LENGTH_SHORT).show()
+//                }catch (e: PermissionException){
+//                    if(e.hasDenied())
+//                        Toast.makeText(this@MainActivity, "Denied", Toast.LENGTH_SHORT).show()
+//                    if(e.hasForeverDenied()){
+//                        e.goToSettings()
+//                    }
+//                }
+//            }
+//            askEnableKeyboard  { resultData->
+//                //Keyboard setting result
+//            }.onCancel {resultData->
+//                //ON_RESULT_CANCELED
+//                //resultData.askAgain() or do your actions
+//            }.onPermissionDenied {resultData->
+//
+//                //the list of denied permissions
+//                if(resultData.hasDenied()){
+//                    Toast.makeText(this, "Denied", Toast.LENGTH_SHORT).show()
+//                    //You can ask for permission again by calling
+//                    //resultData.askAgainPermission()
+//                }
+//                //the list of forever denied permissions, user has check 'never ask again'
+//                if(resultData.hasForeverDenied()){
+//                    // you need to open setting manually if you really need it
+//                    resultData.goToSettings()
+//                }
+//            }
+
 //            askFile(FileType.IMAGES){
 //                img.setImageURI(it.intent?.data)
 //            }.onCancel {
@@ -35,6 +94,7 @@ class MainActivity : AppCompatActivity() {
 //                        it.askAgain()
 //                    }.show()
 //            }.onPermissionDenied {
+//                it.askAgainPermission()
 //                if(it.hasDenied())
 //                    Toast.makeText(this, "Denied", Toast.LENGTH_SHORT).show()
 //

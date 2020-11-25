@@ -3,24 +3,24 @@ package com.dev.amrafridi29.activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.dev.amrafridi29.activity.activityresult.KotlinRuntimeFragment
 import com.dev.amrafridi29.activity.activityresult.RuntimeFragment
-import com.dev.amrafridi29.activity.utils.RealPathUtil.getRealPath
 import com.dev.amrafridi29.activity.activityresult.callbacks.OnCancelCallback
 import com.dev.amrafridi29.activity.activityresult.callbacks.OnPermissionDeniedCallback
 import com.dev.amrafridi29.activity.activityresult.callbacks.OnResultCallback
-import com.dev.amrafridi29.activity.activityresult.model.ResultData
+import com.dev.amrafridi29.activity.activityresult.callbacks.OnResultResponseCallback
 import com.dev.amrafridi29.activity.activityresult.model.FileType
 import com.dev.amrafridi29.activity.activityresult.model.IntentType
+import com.dev.amrafridi29.activity.activityresult.model.ResultData
 import com.dev.amrafridi29.activity.permissions.KotlinRuntimePermission
 import com.dev.amrafridi29.activity.permissions.PermissionResult
 import com.dev.amrafridi29.activity.permissions.RuntimePermission
 import com.dev.amrafridi29.activity.permissions.callbacks.AcceptedCallback
+import com.dev.amrafridi29.activity.permissions.callbacks.ResponseCallback
+import com.dev.amrafridi29.activity.utils.RealPathUtil.getRealPath
 import java.io.File
-
 
 
 fun FragmentActivity.askPermission(vararg  permissions: String, acceptedCallback: (PermissionResult) -> Unit) : KotlinRuntimePermission {
@@ -38,69 +38,70 @@ fun Fragment.askPermission(vararg  permissions: String , acceptedCallback: (Perm
     )
 }
 
-fun AppCompatActivity.askFile(fileType : FileType, isMultiSelect :Boolean= false, onResult: (ResultData) -> Unit) : KotlinRuntimeFragment {
-    return KotlinRuntimeFragment(
-            RuntimeFragment.askResult(this, IntentType.KFile(fileType, isMultiSelect))
-                .onResult(onResult))
 
-}
 
-fun AppCompatActivity.askCamera( authority : String ,storageFileDirectory : File? = null,onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+
+fun FragmentActivity.askCamera( authority : String ,storageFileDirectory : File? = null,onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.CameraImage(authority, storageFileDirectory))
             .onResult(onResult))
 }
 
-fun AppCompatActivity.askContact(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askContact(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.Contact)
             .onResult(onResult))
 }
 
-fun AppCompatActivity.askVideoCamera(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askVideoCamera(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.CameraVideo)
             .onResult(onResult))
 }
 
-fun AppCompatActivity.askForResult(intent: Intent, onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askForResult(intent: Intent, onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.Other(intent))
             .onResult(onResult))
 }
 
-fun AppCompatActivity.askOverlayPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askOverlayPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.OverlayPermission)
         .onResult(onResult))
 }
 
-fun AppCompatActivity.askWriteSettingPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askWriteSettingPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.WriteSettingsPermission)
         .onResult(onResult))
 }
 
-fun AppCompatActivity.askAccessUsageSettingsPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askAccessUsageSettingsPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.AccessUsageSettingsPermission)
             .onResult(onResult))
 }
 
-fun AppCompatActivity.askAccessibilitySettingsPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askAccessibilitySettingsPermission(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.AccessibilitySettingsPermission)
             .onResult(onResult))
 }
 
-fun AppCompatActivity.askEnableKeyboard(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
+fun FragmentActivity.askEnableKeyboard(onResult: (ResultData) -> Unit): KotlinRuntimeFragment {
     return  KotlinRuntimeFragment(
         RuntimeFragment.askResult(this, IntentType.EnableKeyboard)
             .onResult(onResult))
 }
 
-fun Fragment.askFile(fileType : FileType, isMultiSelect :Boolean= false, onResult: (ResultData) -> Unit)
+fun FragmentActivity.askFile(fileType : FileType, isMultiSelect :Boolean= false, onResult: (ResultData) -> Unit)
 = KotlinRuntimeFragment(
+    RuntimeFragment.askResult(this, IntentType.KFile(fileType, isMultiSelect))
+        .onResult(onResult))
+
+fun Fragment.askFile(fileType : FileType, isMultiSelect :Boolean= false, onResult: (ResultData) -> Unit)
+        = KotlinRuntimeFragment(
     RuntimeFragment.askResult(this, IntentType.KFile(fileType, isMultiSelect))
         .onResult(onResult))
 
@@ -178,6 +179,15 @@ fun RuntimeFragment.onCancel(block:(ResultData) -> Unit) : RuntimeFragment {
     return this
 }
 
+fun RuntimeFragment.onResponse(block:(ResultData) -> Unit) : RuntimeFragment {
+    onResponse(object: OnResultResponseCallback {
+        override fun onResultResponse(resultData: ResultData) {
+            block(resultData)
+        }
+    })
+    return this
+}
+
 fun RuntimeFragment.onPermissionDenied(block:(ResultData) -> Unit) : RuntimeFragment {
     onPermissionDenied(object: OnPermissionDeniedCallback {
         override fun onPermissionDenied(resultData: ResultData) {
@@ -190,6 +200,15 @@ fun RuntimeFragment.onPermissionDenied(block:(ResultData) -> Unit) : RuntimeFrag
 fun RuntimePermission.onAccepted(block : (PermissionResult) -> Unit) : RuntimePermission {
     onAccepted(object: AcceptedCallback {
         override fun onAccepted(result: PermissionResult) {
+            block(result)
+        }
+    })
+    return this
+}
+
+fun RuntimePermission.onResponse(block : (PermissionResult) -> Unit) : RuntimePermission {
+    onResponse(object: ResponseCallback {
+        override fun onResponse(result: PermissionResult) {
             block(result)
         }
     })

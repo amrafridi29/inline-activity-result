@@ -12,7 +12,6 @@ import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.dev.amrafridi29.activity.ktx.permissions.callbacks.*
 import com.dev.amrafridi29.activity.permissions.callbacks.*
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference

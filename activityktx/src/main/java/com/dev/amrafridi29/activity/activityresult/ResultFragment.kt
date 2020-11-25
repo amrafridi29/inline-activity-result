@@ -24,19 +24,23 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-internal class ResultFragment() : Fragment(){
+internal class ResultFragment(private val intentType: IntentType?) : Fragment(){
+
+    constructor() :this(null)
+
     private var cameraFilePath: String = ""
+
     companion object{
         val K_REQUEST_CODE= 22
         val K_EXTRA_INTENT_TYPE="k_extra_intent_type"
         val K_TAG = ResultFragment::class.java.simpleName
 
         @JvmStatic
-        fun newInstance(intentType: IntentType?) = ResultFragment().apply {
-            arguments  = Bundle().apply {
-                putSerializable(K_EXTRA_INTENT_TYPE, intentType)
-            }
-        }
+        fun newInstance(intentType: IntentType?) = ResultFragment(intentType)
+
+        @JvmStatic
+        fun newInstance() = ResultFragment()
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,11 +48,10 @@ internal class ResultFragment() : Fragment(){
         retainInstance= true
     }
     
-    private val intentType : IntentType? by lazy{
-        arguments?.getSerializable(K_EXTRA_INTENT_TYPE) as? IntentType
-    }
 
     private var listener : RuntimeFragmentListener? = null
+
+
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
@@ -119,15 +122,15 @@ internal class ResultFragment() : Fragment(){
 
 
     private fun onSuccess(resultCode: Int, intent: Intent?){
-        listener?.onResult(resultCode, intent)
+        listener?.onResponse(resultCode, intent , null)
     }
 
     private fun onCancel(resultCode: Int, intent: Intent?){
-        listener?.onCancel(resultCode, intent)
+        listener?.onResponse(resultCode, intent , null)
     }
 
     private fun onPermissionResult(permissionResult: PermissionResult){
-        listener?.onPermissionDenied(Activity.RESULT_CANCELED, null , permissionResult)
+        listener?.onResponse(Activity.RESULT_CANCELED, null , permissionResult)
         fragmentManager?.beginTransaction()
             ?.remove(this)
             ?.commitAllowingStateLoss()
@@ -374,8 +377,8 @@ internal class ResultFragment() : Fragment(){
     }
 
     interface RuntimeFragmentListener{
-        fun onResult(resultCode : Int , intent : Intent?)
-        fun onCancel(resultCode : Int , intent : Intent?)
-        fun onPermissionDenied(resultCode: Int ,intent: Intent?, permissionResult: PermissionResult)
+        fun onResponse(resultCode: Int , intent: Intent?, permissionResult: PermissionResult?)
     }
+
+
 }

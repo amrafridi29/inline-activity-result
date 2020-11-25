@@ -16,6 +16,10 @@ data class ResultData(
     val permissionResult: PermissionResult?
 ){
 
+    fun getForeverDenied()= permissionResult?.getForeverDenied()
+    fun isAccepted() = permissionResult?.isAccepted()
+    fun getAccepted()= permissionResult?.getAccepted()
+    fun getDenied() = permissionResult?.getDenied()
     fun askAgain()= runtimeFragment.ask()
     fun hasDenied() = permissionResult?.hasDenied() ?: false
     fun hasForeverDenied() = permissionResult?.hasForeverDenied() ?: false
