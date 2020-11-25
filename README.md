@@ -26,3 +26,18 @@ allprojects {
 ```
 
 # How to use 
+
+```
+askFile(FileType.IMAGES){resultData->
+    //okResult here
+ }.onCancel {resultData->
+     //ask it again
+    //resultData.askAgain()
+  }.onPermissionDenied {resultData->
+   if(resultData.hasDenied())
+        resultData.askAgainPermission()
+    if(resultData.hasForeverDenied()) 
+      resultData.goToSettings()
+}
+
+```
