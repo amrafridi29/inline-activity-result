@@ -41,3 +41,21 @@ askFile(FileType.IMAGES){resultData->
 }
 
 ```
+
+# Ask For Camera Pic
+
+```
+askCamera(authority = "your_file_provider_authority_here"){resultData->
+                //okResult here
+            }.onCancel {resultData->
+                //ask it again
+                //resultData.askAgain()
+            }.onPermissionDenied {resultData->
+                if(resultData.hasDenied())
+                    resultData.askAgainPermission()
+
+                if(resultData.hasForeverDenied())
+                    resultData.goToSettings()
+            }
+
+```
